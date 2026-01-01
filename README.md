@@ -57,3 +57,45 @@ Bash
 
 ./compile.sh
 ./run.sh
+```
+### 3. 如果出现数据库无法连接，则输入以下指令至终端
+```bash
+echo "将以下地址改为项目文件所在地址"
+cd ~/桌面/program/StudentManagementSystem 
+
+echo "===== 1. 检查MySQL ====="
+sudo mysql -e "SELECT 'MySQL运行正常' AS status;"
+
+echo ""
+echo "===== 2. 创建用户 ====="
+sudo mysql << 'SQLEOF'
+DROP USER IF EXISTS 'stuadmin'@'localhost';
+CREATE USER 'stuadmin'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Aa123456!';
+GRANT ALL PRIVILEGES ON student_management.* TO 'stuadmin'@'localhost';
+GRANT ALL PRIVILEGES ON *.* TO 'stuadmin'@'localhost';
+FLUSH PRIVILEGES;
+SQLEOF
+
+echo ""
+echo "===== 3. 测试用户连接 ====="
+mysql -u stuadmin -p'Aa123456!' -e "SELECT '用户连接成功' AS status;"
+
+echo ""
+echo "===== 4. 测试数据库 ====="
+mysql -u stuadmin -p'Aa123456!' -e "USE student_management; SELECT COUNT(*) AS user_count FROM tb_user;"
+
+echo ""
+echo "===== 5. 更新配置文件 ====="
+cat > resources/db.properties << 'EOF'
+db.driver=com.mysql.cj.jdbc.Driver
+db.url=jdbc:mysql://localhost:3306/student_management?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+db.username=stuadmin
+db.password=Aa123456!
+EOF
+cp resources/db.properties out/
+echo "配置已更新"
+
+echo ""
+echo "===== 6. 启动程序 ====="
+./run.sh
+
